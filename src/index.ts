@@ -1,3 +1,5 @@
+// Aviso toda vez que o servidor inicia
+
 import http from "http";
 
 import app from "./app";

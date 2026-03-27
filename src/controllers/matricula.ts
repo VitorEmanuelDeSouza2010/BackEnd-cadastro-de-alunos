@@ -1,3 +1,5 @@
+// Atualiza ou Deleta uma matricula de um curso
+
 import { Request, Response } from "express";
 
 import {prisma} from "../../config/prisma";
@@ -5,62 +7,52 @@ import prismaErrorCodes from "../../config/prismaErrorCodes.json";
 
 import { Prisma } from "../../generated/prisma/client";
 import { PrismaClientValidationError } from "@prisma/client/runtime/client";
-import { connect } from "node:http2";
-import cursos from "./cursos";
+import { handleErrors } from "../helpers/handleErrors";
 
 export default {
-    update: async (request: Request, response: Response) => {
+    create: async (request: Request, response: Response) => {
 
         // Create
         try {
-            const { alunoId, cursoId } = request.body;
-            const users = await prisma.alunos.update({
+            const { alunoId, cursosId } = request.body;
+            const student = await prisma.alunos.update({
                 where: {
                     id: alunoId
                 },
                 data: {
                     cursos: {
-                        connect: {
-                            id: cursoId
-                        }
-                    }
-                }
+                        connect: cursosId.map(( cursoId: number ) => ({ id: cursoId })),
+                    },
+                },
+                include: {
+                    cursos: true,
+                },
             });
-            
-            return response.status(201).json(users);
+            return response.status(201).json(student);
         } catch (e) {
-            if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof PrismaClientValidationError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-            };
-            return response.status(500).json("Unkown error. try again later");
+            return handleErrors(e, response);
         };
     },
 
     delete: async (request: Request, response: Response) => {
         try {
-            const { alunoId, cursoId } = request.body;
-            const users = await prisma.alunos.update({
-                where: {
-                    id: alunoId
-                },
+            const { id } = request.params;
+            const { cursosId } = request.body;
+
+            const student = await prisma.alunos.update({
+                where: { id: +id },
                 data: {
                     cursos: {
-                        disconnect: {
-                            id: cursoId
-                        }
-                    }
-                }
+                        disconnect: cursosId.map((cursoId: number) => ({ id: cursoId }))
+                    },
+                },
+                include: {
+                    cursos: true,
+                },
             });
-            
-            return response.status(201).json(users);
+            return response.status(200).json(student);
         } catch (e) {
-            console.error(e)
-            if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof PrismaClientValidationError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-            };
-            return response.status(500).json("Unkown error. try again later");
+            return handleErrors(e, response);
         };
     },
-}
+};

@@ -3,6 +3,8 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
+
+// cria relações entre os itens 
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -32,4 +34,14 @@ model Cursos {
   alunos Alunos[]
   createAt     DateTime   @default(now())
   updateAt     DateTime   @updatedAt
+}
+
+model Funcionarios {
+  id       Int      @id @default(autoincrement())
+  nome     String
+  email    String   @unique
+  senha    String
+  admin    Boolean  @default(false)
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt
 }

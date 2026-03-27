@@ -1,3 +1,5 @@
+// Lista, Cria, Atualiza, Deleta ou pega um aluno pelo Id
+
 import { Request, Response } from "express";
 
 import {prisma} from "../../config/prisma";
@@ -5,6 +7,7 @@ import prismaErrorCodes from "../../config/prismaErrorCodes.json";
 
 import { Prisma } from "../../generated/prisma/client";
 import { PrismaClientValidationError } from "@prisma/client/runtime/client";
+import { handleErrors } from "../helpers/handleErrors";
 
 export default {
     list: async (request: Request, response: Response) => {
@@ -12,7 +15,6 @@ export default {
             const users = await prisma.alunos.findMany({
                 include: { cursos: true },
             });
-            
             return response.status(200).json(users);
         } catch (e) {
             if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof PrismaClientValidationError){
@@ -36,11 +38,7 @@ export default {
             });
             return response.status(201).json(users);
         } catch (e) {
-            if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof PrismaClientValidationError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-            };
-            return response.status(500).json("Unkown error. try again later");
+            return handleErrors(e, response);
         };
     },
 
@@ -55,11 +53,7 @@ export default {
             });
             return response.status(200).json(user);
         } catch (e) {
-            if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof PrismaClientValidationError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-            };
-            return response.status(500).json("Unkown error. try again later");
+            return handleErrors(e, response);
         };
     },
 
@@ -80,11 +74,7 @@ export default {
 
             return response.status(200).json(user);
         } catch (e) {
-            if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof PrismaClientValidationError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-            };
-            return response.status(500).json("Unkown error. try again later");
+            return handleErrors(e, response);
         };
     },
 
@@ -100,11 +90,7 @@ export default {
             
             return response.status(200).json(user);
         } catch (e) {
-            if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof PrismaClientValidationError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-            };
-            return response.status(500).json("Unkown error. try again later");
+            return handleErrors(e, response);
         };
     }
 };
