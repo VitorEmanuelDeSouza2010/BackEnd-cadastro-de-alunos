@@ -16,11 +16,10 @@ export default {
             const employee = await prisma.funcionarios.findUnique({
                 where: {
                     email,
-                    senha: bcrypt.hashSync(senha, +process.env.BCRYPT_ROUNDS!),
                 },
             });
 
-            if (!employee) {
+            if (!employee || !bcrypt.compareSync(senha, employee.senha)) {
                 return response.status(404).json("Email e/ou senha inválidos");
             }
 
