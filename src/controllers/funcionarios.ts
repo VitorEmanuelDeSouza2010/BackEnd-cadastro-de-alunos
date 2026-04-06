@@ -23,7 +23,9 @@ export default {
                 return response.status(404).json("Email e/ou senha inválidos");
             }
 
-            const token = jwt.sign(employee, process.env.JWT_SECRET!);
+            const token = jwt.sign(employee, process.env.JWT_SECRET!, {
+                expiresIn: "1d",
+            });
 
             return response.status(200).json({access_token: token });
         } catch (e) {
@@ -42,7 +44,15 @@ export default {
         
         create: async (request: Request, response: Response) => {
             try {
-            const { nome, senha, admin, email } = request.body;
+            const { nome, senha, admin, email, user } = request.body;
+
+            if(!user.admin) {
+                return response.status(403).json("Não autorizado");
+            };
+
+            if(!nome || !email || !senha) {
+                return response.status(400).json("Dados do funcionário incompletos");
+            };
 
             const employee = await prisma.funcionarios.create({
                 data: {
@@ -52,6 +62,7 @@ export default {
                     admin,
                 },
             });
+
             return response.status(201).json(employee);
         } catch (e) {
             return handleErrors(e, response);
@@ -75,13 +86,17 @@ export default {
     update: async (request: Request, response: Response) => {
         try {
             const { id } = request.params;
-            const { nome, admin, email } = request.body;
+            const { nome, admin, email, user} = request.body;
+
+            if(!user.admin && user.id !== +id) {
+                return response.status(403).json("Não autorizado");
+            }
             
             const employee = await prisma.funcionarios.update({
                 data: {
                     nome,
                     email,
-                    admin,
+                    admin: user.admin ? admin : false,
                 },
                 where: {
                     id: +id
@@ -97,6 +112,11 @@ export default {
     delete: async (request: Request, response: Response) => {
         try {
             const { id } = request.params;
+            const { user } = request.body;
+
+            if(!user.admin) {
+                return response.status(403).json("Não autorizado");
+            };
             
             const employee = await prisma.funcionarios.delete({
                 where: {
